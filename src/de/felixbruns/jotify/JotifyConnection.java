@@ -94,6 +94,19 @@ public class JotifyConnection implements Jotify, CommandListener {
 		this.unit    = unit;
                 return this;
 	}
+
+        /**
+         * Set timeout for requests in seconds.
+         *
+         * @param timeout Timeout value to use.
+         */
+        public Jotify setTimeout(long timeout)
+        {
+                this.timeout = timeout;
+                this.unit    = TimeUnit.SECONDS;
+                return this;
+        }
+
 	
 	/**
 	 * Login to Spotify using the specified username and password.
