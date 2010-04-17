@@ -15,7 +15,6 @@ import de.felixbruns.jotify.exceptions.*;
 import de.felixbruns.jotify.media.*;
 import de.felixbruns.jotify.media.Link.InvalidSpotifyURIException;
 import de.felixbruns.jotify.media.parser.*;
-import de.felixbruns.jotify.player.*;
 import de.felixbruns.jotify.protocol.*;
 import de.felixbruns.jotify.protocol.channel.*;
 import de.felixbruns.jotify.util.*;
@@ -26,7 +25,6 @@ public class JotifyConnection implements Jotify, CommandListener {
 	private boolean   running;
 	private User      user;
 	private Semaphore userSemaphore;
-	private Player    player;
 	private Cache     cache;
 	private float     volume;
 	private long      timeout;
@@ -75,7 +73,6 @@ public class JotifyConnection implements Jotify, CommandListener {
 		this.running       = false;
 		this.user          = null;
 		this.userSemaphore = new Semaphore(2);
-		this.player        = null;
 		this.cache         = cache;
 		this.volume        = 1.0f;
 		this.timeout       = timeout;
@@ -1436,116 +1433,6 @@ public class JotifyConnection implements Jotify, CommandListener {
 		playlist.setCollaborative(confirmation.isCollaborative());
 		
 		return true;
-	}
-	
-	/**
-	 * Play a track in a background thread.
-	 * 
-	 * @param track    A {@link Track} object identifying the track to be played.
-	 * @param listener A {@link PlaybackListener} receiving playback status updates.
-	 */
-	public void play(Track track, PlaybackListener listener) throws TimeoutException {
-		/* Create channel callbacks. */
-		ChannelCallback callback = new ChannelCallback();
-		
-		/* Send play request (token notify + AES key). */
-		try{
-			this.protocol.sendPlayRequest(callback, track);
-		}
-		catch(ProtocolException e){
-			return;
-		}
-		
-		/* Get AES key. */
-		byte[] key = callback.get(this.timeout, this.unit);
-		
-		/* Stream channel. */
-		this.player = new ChannelPlayer(this.protocol, track, key, listener);
-		this.player.volume(this.volume);
-		
-		/* Start playing. */
-		this.play();
-	}
-	
-	/**
-	 * Start playing or resume current track.
-	 */
-	public void play(){
-		if(this.player != null){
-			this.player.play();
-		}
-	}
-	
-	/**
-	 * Pause playback of current track.
-	 */
-	public void pause(){
-		if(this.player != null){
-			this.player.pause();
-		}
-	}
-	
-	/**
-	 * Stop playback of current track.
-	 */
-	public void stop(){
-		if(this.player != null){
-			this.player.stop();
-			
-			this.player = null;
-		}
-	}
-	
-	/**
-	 * Get length of current track.
-	 * 
-	 * @return Length in seconds or -1 if not available.
-	 */
-	public int length(){
-		if(this.player != null){
-			return this.player.length();
-		}
-		
-		return -1;
-	}
-	
-	/**
-	 * Get playback position of current track.
-	 * 
-	 * @return Playback position in seconds or -1 if not available.
-	 */
-	public int position(){
-		if(this.player != null){
-			return this.player.position();
-		}
-		
-		return -1;
-	}
-	
-	/**
-	 * Get volume.
-	 * 
-	 * @return A value from 0.0 to 1.0.
-	 */
-	public float volume(){
-		if(this.player != null){
-			return this.player.volume();
-		}
-		
-		return -1;
-	}
-	
-	/**
-	 * Set volume.
-	 * 
-	 * @param volume A value from 0.0 to 1.0.
-	 */
-	public void volume(float volume){
-		this.volume = volume;
-		
-		if(this.player != null){
-			this.player.volume(this.volume);
-		}
 	}
 	
 	/**

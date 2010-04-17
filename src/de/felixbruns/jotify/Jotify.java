@@ -6,9 +6,8 @@ import java.util.concurrent.TimeoutException;
 
 import de.felixbruns.jotify.exceptions.*;
 import de.felixbruns.jotify.media.*;
-import de.felixbruns.jotify.player.Player;
 
-public interface Jotify extends Runnable, Player {
+public interface Jotify extends Runnable {
 	/**
 	 * Login to Spotify using the specified username and password.
 	 * 
