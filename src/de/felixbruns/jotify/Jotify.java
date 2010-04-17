@@ -16,15 +16,19 @@ public interface Jotify extends Runnable {
 	 * 
 	 * @throws ConnectionException
 	 * @throws AuthenticationException
+         * 
+         * @return
 	 */
-	public void login(String username, String password) throws ConnectionException, AuthenticationException;
+	public Jotify login(String username, String password) throws ConnectionException, AuthenticationException;
 	
 	/**
 	 *  Closes the connection to a Spotify server.
 	 *  
 	 *  @throws ConnectionException
+         *
+         *  @return
 	 */
-	public void close() throws ConnectionException;
+	public Jotify close() throws ConnectionException;
 	
 	/**
 	 * Get user info.

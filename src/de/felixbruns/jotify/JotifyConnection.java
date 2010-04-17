@@ -87,10 +87,12 @@ public class JotifyConnection implements Jotify, CommandListener {
 	 * 
 	 * @param timeout Timeout value to use.
 	 * @param unit    TimeUnit to use for timeout.
+         * @return
 	 */
-	public void setTimeout(long timeout, TimeUnit unit){
+	public Jotify setTimeout(long timeout, TimeUnit unit){
 		this.timeout = timeout;
 		this.unit    = unit;
+                return this;
 	}
 	
 	/**
@@ -101,8 +103,10 @@ public class JotifyConnection implements Jotify, CommandListener {
 	 * 
 	 * @throws ConnectionException
 	 * @throws AuthenticationException
+         *
+         * @return
 	 */
-	public void login(String username, String password) throws ConnectionException, AuthenticationException {
+	public Jotify login(String username, String password) throws ConnectionException, AuthenticationException {
 		/* Check if we're already logged in. */
 		if(this.protocol != null){
 			throw new IllegalStateException("Already logged in!");
@@ -119,14 +123,18 @@ public class JotifyConnection implements Jotify, CommandListener {
 		
 		/* Start I/O thread. */
 		new Thread(this).start();
+
+                return this;
 	}
 	
 	/**
 	 * Closes the connection to a Spotify server.
 	 * 
 	 * @throws ConnectionException
+         *
+         * @return
 	 */
-	public void close() throws ConnectionException {
+	public Jotify close() throws ConnectionException {
 		/* This will make receivePacket return immediately. */
 		if(this.protocol != null){
 			this.protocol.disconnect();
@@ -134,6 +142,8 @@ public class JotifyConnection implements Jotify, CommandListener {
 		
 		/* Reset protocol to 'null'. */
 		this.protocol = null;
+
+                return this;
 	}
 	
 	/**
