@@ -409,7 +409,7 @@ public class Link {
 	 * 
 	 * @return A hexadecimal id.
 	 */
-	private static String toHex(String base62){
+	public static String toHex(String base62){
 		StringBuffer hex = new StringBuffer(BaseConvert.convert(base62, 62, 16));
 		
 		/* Prepend zeroes until hexadecimal string length is 32. */
@@ -427,7 +427,7 @@ public class Link {
 	 * 
 	 * @return A base-62 encoded id.
 	 */
-	private static String toBase62(String hex){
+	public static String toBase62(String hex){
 		StringBuffer uri = new StringBuffer(BaseConvert.convert(hex, 16, 62));
 		
 		/* Prepend zeroes until base-62 string length is 22. */
