@@ -48,9 +48,11 @@ public class Protocol {
 	/* Connect to one of the spotify servers. */
 	public void connect() throws ConnectionException {
 		/* Lookup servers via DNS SRV query. */
-		List<InetSocketAddress> servers = DNS.lookupSRV("_spotify-client._tcp.spotify.com");
+		List<InetSocketAddress> servers = new ArrayList<InetSocketAddress>(); //DNS.lookupSRV("_spotify-client._tcp.spotify.com");
 		
 		/* Add a fallback servers if others don't work. */
+                servers.add(new InetSocketAddress("a1.spotify.com", 4070));
+                servers.add(new InetSocketAddress("a2.spotify.com", 4070));
 		servers.add(new InetSocketAddress("ap.spotify.com", 4070));
 		servers.add(new InetSocketAddress("ap.spotify.com", 80));
 		servers.add(new InetSocketAddress("ap.spotify.com", 443));
