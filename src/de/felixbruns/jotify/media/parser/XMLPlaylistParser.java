@@ -219,7 +219,7 @@ public class XMLPlaylistParser extends XMLParser implements XMLStreamConstants {
 		while(this.reader.next() == START_ELEMENT){
 			name = this.reader.getLocalName();
 			
-			if(name.equals("create")){
+			if(name.equals("create") || name.equals("destroy")){
 				this.getElementString(); /* Skip. */
 			}
 			else if(name.equals("pub") && object instanceof Playlist){
