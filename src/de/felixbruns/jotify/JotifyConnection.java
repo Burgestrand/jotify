@@ -20,32 +20,37 @@ import de.felixbruns.jotify.protocol.channel.*;
 import de.felixbruns.jotify.util.*;
 
 public class JotifyConnection implements Jotify, CommandListener {
-	private Session   session;
-	private Protocol  protocol;
-	private boolean   running;
+	/*
+	 * Values for browsing media.
+	 */
+	private static final int BROWSE_ARTIST = 1;
+	private static final int BROWSE_ALBUM  = 2;
+	private static final int BROWSE_TRACK  = 3;
+	
+	/*
+	 * Session and protocol associated with this connection.
+	 */
+	protected Session  session;
+	protected Protocol protocol;
+	
+	/*
+	 * User information.
+	 */
 	private User      user;
 	private Semaphore userSemaphore;
-	private Cache     cache;
-	private float     volume;
-	private long      timeout;
-	private TimeUnit  unit;
 	
-	/**
-	 * Enum for browsing media.
+	/*
+	 * Player and cache.
 	 */
-	private enum BrowseType {
-		ARTIST(1), ALBUM(2), TRACK(3);
-		
-		private int value;
-		
-		private BrowseType(int value){
-			this.value = value;
-		}
-		
-		public int getValue(){
-			return this.value;
-		}
-	}
+	private Player player;
+	private Cache  cache;
+	
+	/*
+	 * Status and timeout.
+	 */
+	private boolean  running;
+	private long     timeout;
+	private TimeUnit unit;
 	
 	/**
 	 * Create a new Jotify instance using the default {@link Cache}
@@ -74,7 +79,6 @@ public class JotifyConnection implements Jotify, CommandListener {
 		this.user          = null;
 		this.userSemaphore = new Semaphore(2);
 		this.cache         = cache;
-		this.volume        = 1.0f;
 		this.timeout       = timeout;
 		this.unit          = unit;
 		
@@ -94,19 +98,16 @@ public class JotifyConnection implements Jotify, CommandListener {
 		this.unit    = unit;
                 return this;
 	}
-
-        /**
-         * Set timeout for requests in seconds.
-         *
-         * @param timeout Timeout value to use.
-         */
-        public Jotify setTimeout(long timeout)
-        {
-                this.timeout = timeout;
-                this.unit    = TimeUnit.SECONDS;
-                return this;
-        }
-
+	
+	/**
+	 * Set timeout for requests.
+	 * 
+	 * @param seconds Timeout in seconds to use.
+	 */
+	public void setTimeout(long seconds){
+		this.timeout = seconds;
+		this.unit    = TimeUnit.SECONDS;
+	}
 	
 	/**
 	 * Login to Spotify using the specified username and password.
@@ -346,7 +347,7 @@ public class JotifyConnection implements Jotify, CommandListener {
 	 * 
 	 * @see BrowseType
 	 */
-	private Object browse(BrowseType type, String id) throws TimeoutException {
+	private Object browse(int type, String id) throws TimeoutException {
 		/*
 		 * Check if id is a 32-character hex string,
 		 * if not try to parse it as a Spotify URI.
@@ -355,9 +356,9 @@ public class JotifyConnection implements Jotify, CommandListener {
 			try{
 				Link link = Link.create(id);
 				
-				if((type.equals(BrowseType.ARTIST) && !link.isArtistLink()) ||
-				   (type.equals(BrowseType.ALBUM)  && !link.isAlbumLink())  ||
-				   (type.equals(BrowseType.TRACK)  && !link.isTrackLink())){
+				if((type == BROWSE_ARTIST && !link.isArtistLink()) ||
+				   (type == BROWSE_ALBUM  && !link.isAlbumLink())  ||
+				   (type == BROWSE_TRACK  && !link.isTrackLink())){
 					throw new IllegalArgumentException(
 						"Browse type doesn't match given Spotify URI."
 					);
@@ -378,7 +379,7 @@ public class JotifyConnection implements Jotify, CommandListener {
 		
 		/* Send browse request. */
 		try{
-			this.protocol.sendBrowseRequest(callback, type.getValue(), id);
+			this.protocol.sendBrowseRequest(callback, type, id);
 		}
 		catch(ProtocolException e){
 			return null;
@@ -402,7 +403,7 @@ public class JotifyConnection implements Jotify, CommandListener {
 	 */
 	public Artist browseArtist(String id) throws TimeoutException {
 		/* Browse. */
-		Object artist = this.browse(BrowseType.ARTIST, id);
+		Object artist = this.browse(BROWSE_ARTIST, id);
 		
 		if(artist instanceof Artist){
 			return (Artist)artist;
@@ -437,7 +438,7 @@ public class JotifyConnection implements Jotify, CommandListener {
 	 */
 	public Album browseAlbum(String id) throws TimeoutException {
 		/* Browse. */
-		Object album = this.browse(BrowseType.ALBUM, id);
+		Object album = this.browse(BROWSE_ALBUM, id);
 		
 		if(album instanceof Album){
 			return (Album)album;
@@ -471,7 +472,7 @@ public class JotifyConnection implements Jotify, CommandListener {
 	 */
 	public Track browseTrack(String id) throws TimeoutException {
 		/* Browse. */
-		Object object = this.browse(BrowseType.TRACK, id);
+		Object object = this.browse(BROWSE_TRACK, id);
 		
 		if(object instanceof Result){
 			Result result = (Result)object;
@@ -561,7 +562,7 @@ public class JotifyConnection implements Jotify, CommandListener {
 			
 			/* Send browse request. */
 			try{
-				this.protocol.sendBrowseRequest(callback, BrowseType.TRACK.getValue(), ids);
+				this.protocol.sendBrowseRequest(callback, BROWSE_TRACK, ids);
 			}
 			catch(ProtocolException e){
 				return null;
@@ -600,6 +601,48 @@ public class JotifyConnection implements Jotify, CommandListener {
 		}
 		
 		return this.browseTracks(ids);
+	}
+	
+	/**
+	 * Request a replacement track.
+	 * 
+	 * @param track The track to search the replacement for.
+	 * 
+	 * @return A {@link Track} object.
+	 * 
+	 * @see Track
+	 */
+	public Track replacement(Track track) throws TimeoutException {
+		return this.replacement(Arrays.asList(track)).get(0);
+	}
+	
+	/**
+	 * Request multiple replacement track.
+	 * 
+	 * @param tracks The tracks to search the replacements for.
+	 * 
+	 * @return A list of {@link Track} objects.
+	 * @throws TimeoutException  
+	 * 
+	 * @see Track
+	 */
+	public List<Track> replacement(List<Track> tracks) throws TimeoutException {
+		/* Create channel callback */
+		ChannelCallback callback = new ChannelCallback();
+		
+		/* Send browse request. */
+		try{
+			this.protocol.sendReplacementRequest(callback, tracks);
+		}
+		catch(ProtocolException e){
+			return null;
+		}
+		
+		/* Get data. */
+		byte[] data = callback.get(this.timeout, this.unit);
+		
+		/* Create result from XML. */
+		return XMLMediaParser.parseResult(data, "UTF-8").getTracks();
 	}
 	
 	/**
