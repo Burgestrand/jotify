@@ -42,7 +42,6 @@ public class JotifyConnection implements Jotify, CommandListener {
 	/*
 	 * Player and cache.
 	 */
-	private Player player;
 	private Cache  cache;
 	
 	/*

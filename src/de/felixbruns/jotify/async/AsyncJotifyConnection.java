@@ -17,9 +17,6 @@ import de.felixbruns.jotify.media.Link.InvalidSpotifyURIException;
 import de.felixbruns.jotify.media.parser.XMLMediaParser;
 import de.felixbruns.jotify.media.parser.XMLPlaylistParser;
 import de.felixbruns.jotify.media.parser.XMLUserParser;
-import de.felixbruns.jotify.player.PlaybackListener;
-import de.felixbruns.jotify.player.Player;
-import de.felixbruns.jotify.player.SpotifyOggPlayer;
 import de.felixbruns.jotify.protocol.*;
 import de.felixbruns.jotify.protocol.channel.*;
 import de.felixbruns.jotify.util.*;
@@ -48,7 +45,6 @@ public class AsyncJotifyConnection implements AsyncJotify, CommandListener {
 	/*
 	 * Player and cache.
 	 */
-	private Player player;
 	private Cache  cache;
 	
 	/**
@@ -81,7 +77,6 @@ public class AsyncJotifyConnection implements AsyncJotify, CommandListener {
 		this.password  = null;
 		this.user      = null;
 		this.cache     = cache;
-		this.player    = null;
 		this.listeners = new LinkedList<AsyncJotifyListener>();
 	}
 	
@@ -167,9 +162,6 @@ public class AsyncJotifyConnection implements AsyncJotify, CommandListener {
 			
 			return;
 		}
-		
-		/* Create OGG player. */
-		this.player = new SpotifyOggPlayer(this.protocol);
 		
 		/* Add command handler. */
 		this.protocol.addListener(this);
@@ -957,98 +949,6 @@ public class AsyncJotifyConnection implements AsyncJotify, CommandListener {
 				}
 			}
 		}
-	}
-	
-	public void play(Track track, int bitrate, PlaybackListener listener) throws TimeoutException, IOException, LineUnavailableException {
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		try{
-			this.protocol.sendPlayRequest();
-			
-			this.player.stop();
-			this.player.play(track, bitrate, listener);
-		}
-		catch(ProtocolException e){
-			/* Fire exception event. */
-			for(AsyncJotifyListener l : this.listeners){
-				l.receivedException(e);
-			}
-		}
-	}
-	
-	public void play(){
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		this.player.play();
-	}
-	
-	public void pause(){
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		this.player.pause();
-	}
-	
-	public void stop(){
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		this.player.stop();
-	}
-	
-	public int length(){
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		return this.player.length();
-	}
-	
-	public int position(){
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		return this.player.position();
-	}
-	
-	public void seek(int ms) throws IOException {
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		this.player.seek(ms);
-	}
-	
-	public float volume(){
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		return this.player.volume();
-	}
-	
-	public void volume(float volume){
-		/* Check if we're logged in. */
-		if(this.protocol == null){
-			throw new IllegalStateException("Not logged in!");
-		}
-		
-		this.player.volume(volume);
 	}
 	
 	/**

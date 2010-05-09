@@ -3,9 +3,8 @@ package de.felixbruns.jotify.async;
 import java.util.List;
 
 import de.felixbruns.jotify.media.*;
-import de.felixbruns.jotify.player.Player;
 
-public interface AsyncJotify extends Runnable, Player {
+public interface AsyncJotify extends Runnable {
 	/**
 	 * Add a listener to receive events.
 	 * 

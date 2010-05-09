@@ -1,15 +1,12 @@
 package de.felixbruns.jotify;
 
 import java.awt.Image;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import javax.sound.sampled.LineUnavailableException;
 
 import de.felixbruns.jotify.exceptions.AuthenticationException;
 import de.felixbruns.jotify.exceptions.ConnectionException;
@@ -20,10 +17,8 @@ import de.felixbruns.jotify.media.PlaylistContainer;
 import de.felixbruns.jotify.media.Result;
 import de.felixbruns.jotify.media.Track;
 import de.felixbruns.jotify.media.User;
-import de.felixbruns.jotify.player.PlaybackListener;
-import de.felixbruns.jotify.player.Player;
 
-public class JotifyPool implements Jotify, Player {
+public class JotifyPool implements Jotify {
 	private List<Jotify>          connectionList;
 	private BlockingQueue<Jotify> connectionQueue;
 	private Jotify                playConnection;
@@ -115,7 +110,7 @@ public class JotifyPool implements Jotify, Player {
 		return connection;
 	}
 	
-	public void login(String username, String password) throws ConnectionException, AuthenticationException {
+	public Jotify login(String username, String password) throws ConnectionException, AuthenticationException {
 		/* Check if connections are available. */
 		if(!this.connectionList.isEmpty()){
 			throw new AuthenticationException("Already logged in!");
@@ -128,9 +123,11 @@ public class JotifyPool implements Jotify, Player {
 		Jotify connection = this.createConnection();
 		
 		this.releaseConnection(connection);
+
+                return this;
 	}
 	
-	public void close() throws ConnectionException {
+	public Jotify close() throws ConnectionException {
 		this.connectionQueue.clear();
 		
 		/* Close all connections. */
@@ -139,6 +136,8 @@ public class JotifyPool implements Jotify, Player {
 		}
 		
 		this.connectionList.clear();
+
+                return this;
 	}
 	
 	public void run(){
@@ -478,77 +477,5 @@ public class JotifyPool implements Jotify, Player {
 		this.releaseConnection(connection);
 		
 		return success;
-	}
-	
-	public void play(Track track, int bitrate, PlaybackListener listener) throws TimeoutException, IOException, LineUnavailableException {
-		if(this.playConnection != null){
-			this.playConnection.stop();
-			
-			this.releaseConnection(this.playConnection);
-			
-			this.playConnection = null;
-		}
-		
-		this.playConnection = this.getConnection();
-		
-		this.playConnection.play(track, bitrate, listener);
-	}
-	
-	public void play(){
-		if(this.playConnection != null){
-			this.playConnection.play();
-		}
-	}
-	
-	public void pause(){
-		if(this.playConnection != null){
-			this.playConnection.pause();
-		}
-	}
-	
-	public void stop(){
-		if(this.playConnection != null){
-			this.playConnection.stop();
-			
-			this.releaseConnection(this.playConnection);
-			
-			this.playConnection = null;
-		}
-	}
-	
-	public int length(){
-		if(this.playConnection != null){
-			return this.playConnection.length();
-		}
-		
-		return -1;
-	}
-	
-	public int position(){
-		if(this.playConnection != null){
-			return this.playConnection.position();
-		}
-		
-		return -1;
-	}
-	
-	public void seek(int position) throws IOException {
-		if(this.playConnection != null){
-			this.playConnection.seek(position);
-		}
-	}
-	
-	public float volume(){
-		if(this.playConnection != null){
-			return this.playConnection.volume();
-		}
-		
-		return Float.NaN;
-	}
-	
-	public void volume(float volume){
-		if(this.playConnection != null){
-			this.playConnection.volume(volume);
-		}
 	}
 }
