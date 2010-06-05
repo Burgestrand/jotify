@@ -1,2 +1,1 @@
-This is a stripped down version of the original Jotify. I will remove the
-GUI, music play capabilities and so on — turning it into a *library*.
+This project has been abandoned in favor of [Hallon](http://github.com/Burgestrand/Hallon), Ruby bindings for the Spotify API using the official `libspotify` instead.
